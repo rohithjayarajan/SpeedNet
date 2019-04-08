@@ -1,0 +1,101 @@
+"""
+@file    DataUtils.py
+@author  rohithjayarajan
+@date 02/22/2019
+
+Licensed under the
+GNU General Public License v3.0
+"""
+
+import os
+import cv2
+import numpy as np
+import random
+import skimage
+import PIL
+import sys
+# Don't generate pyc codes
+sys.dont_write_bytecode = True
+
+
+def SetupAll(BasePath, CheckPointPath):
+    """
+    Inputs: 
+    BasePath is the base path where Images are saved without "/" at the end
+    CheckPointPath - Path to save checkpoints/model
+    Outputs:
+    DirNamesTrain - Variable with Subfolder paths to train files
+    SaveCheckPoint - Save checkpoint every SaveCheckPoint iteration in every epoch, checkpoint saved automatically after every epoch
+    ImageSize - Size of the image
+    NumTrainSamples - length(Train)
+    NumTestRunsPerEpoch - Number of passes of Val data with MiniBatchSize 
+    Trainabels - Labels corresponding to Train
+    NumClasses - Number of classes
+    """
+    # Setup DirNames
+    DirNamesTrain = SetupDirNames(BasePath)
+    DirNamesVal = ReadDirNames(
+        '/home/rohith/CMSC733/git/SpeedNet/Code/TxtFiles/valName.txt')
+
+    # Read and Setup Labels
+    LabelsPathTrain = './TxtFiles/trainLabel.txt'
+    TrainLabels = ReadLabels(LabelsPathTrain)
+    LabelsPathVal = './TxtFiles/valLabel.txt'
+    ValLabels = ReadLabels(LabelsPathVal)
+
+    # If CheckPointPath doesn't exist make the path
+    if(not (os.path.isdir(CheckPointPath))):
+        os.makedirs(CheckPointPath)
+
+    # Save checkpoint every SaveCheckPoint iteration in every epoch, checkpoint saved automatically after every epoch
+    SaveCheckPoint = 200
+    # Number of passes of Val data with MiniBatchSize
+    NumTestRunsPerEpoch = 5
+
+    # Image Input Shape
+    # ImageSize = [224, 224, 2]
+    ImageSize = [66, 200, 3]
+    NumTrainSamples = len(DirNamesTrain)
+
+    # Number of classes
+    NumClasses = 10
+
+    return DirNamesTrain, SaveCheckPoint, ImageSize, NumTrainSamples, TrainLabels, DirNamesVal, ValLabels
+
+
+def ReadLabels(LabelsPathTrain):
+    if(not (os.path.isfile(LabelsPathTrain))):
+        print('ERROR: Train Labels do not exist in '+LabelsPathTrain)
+        sys.exit()
+    else:
+        TrainLabels = open(LabelsPathTrain, 'r')
+        TrainLabels = TrainLabels.read()
+        TrainLabels = map(float, TrainLabels.split())
+
+    return TrainLabels
+
+
+def SetupDirNames(BasePath):
+    """
+    Inputs: 
+    BasePath is the base path where Images are saved without "/" at the end
+    Outputs:
+    Writes a file ./TxtFiles/DirNames.txt with full path to all image files without extension
+    """
+    DirNamesTrain = ReadDirNames('./TxtFiles/trainName.txt')
+
+    return DirNamesTrain
+
+
+def ReadDirNames(ReadPath):
+    """
+    Inputs: 
+    ReadPath is the path of the file you want to read
+    Outputs:
+    DirNames is the data loaded from ./TxtFiles/DirNames.txt which has full path to all image files without extension
+    """
+    # Read text files
+    DirNames = open(ReadPath, 'r')
+    DirNames = DirNames.read()
+    DirNames = DirNames.split()
+    return DirNames
